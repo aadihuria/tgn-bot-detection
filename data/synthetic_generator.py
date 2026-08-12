@@ -38,13 +38,13 @@ from dataclasses import dataclass
 
 @dataclass
 class SyntheticGraphConfig:
-    n_organic: int = 14000
-    n_bot_clusters: int = 40
+    n_organic: int = 6000
+    n_bot_clusters: int = 25
     cluster_size_min: int = 8
     cluster_size_max: int = 35
-    n_targets: int = 600
-    time_span_days: float = 120.0
-    organic_follows_per_day: float = 0.9
+    n_targets: int = 400
+    time_span_days: float = 60.0
+    organic_follows_per_day: float = 0.7
     burst_window_hours: float = 4.0
     cluster_reactivations_min: int = 2
     cluster_reactivations_max: int = 5
