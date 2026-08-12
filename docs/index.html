@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>temporal graph network for bot detection</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161a21;
+    --border: #262b35;
+    --text: #e6e8eb;
+    --text-dim: #9aa1ac;
+    --accent: #6ea8fe;
+    --accent-2: #4fd1a5;
+    --warn: #f2b84b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 48px 24px 96px; }
+  header h1 {
+    font-size: 1.7rem;
+    margin: 0 0 8px;
+  }
+  header p.lede {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    max-width: 700px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(242, 184, 75, 0.12);
+    color: var(--warn);
+    border: 1px solid rgba(242, 184, 75, 0.35);
+    margin-bottom: 18px;
+  }
+  section { margin-top: 44px; }
+  h2 {
+    font-size: 1.15rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .stat {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat .num { font-size: 1.5rem; font-weight: 600; }
+  .stat .label { color: var(--text-dim); font-size: 0.8rem; margin-top: 4px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--text-dim); font-weight: 500; }
+  .risk-high { color: #ff6b6b; }
+  .risk-medium { color: var(--warn); }
+  .risk-low { color: var(--accent-2); }
+  img.chart {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  code, pre {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  code { padding: 1px 6px; font-size: 0.85em; }
+  pre { padding: 14px; overflow-x: auto; }
+  a { color: var(--accent); }
+  footer {
+    margin-top: 60px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+  #loading { color: var(--text-dim); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="badge">synthetic benchmark — see note below</div>
+    <h1>temporal graph network for coordinated inauthentic behavior detection</h1>
+    <p class="lede">
+      most bot detectors look at one account at a time and ask "does this look like a bot."
+      sophisticated bot networks are built to pass that test. what they can't hide is
+      <em>when</em> a cluster of accounts moves together — this project scores accounts with a
+      temporal graph network that has memory of connection history, and separately flags
+      clusters of accounts whose timing is statistically impossible to be organic.
+    </p>
+  </header>
+
+  <section>
+    <h2>results, on the synthetic benchmark</h2>
+    <div id="stat-grid" class="stat-grid"><span id="loading">loading results…</span></div>
+  </section>
+
+  <section>
+    <h2>early detection: does temporal info actually help</h2>
+    <p style="color:var(--text-dim); font-size:0.92rem;">
+      the graphsage baseline sees one static snapshot of the graph. the tgn walks the edge
+      stream in order and updates a memory vector per account as events arrive. this chart
+      compares both at increasing fractions of the observed timeline.
+    </p>
+    <img class="chart" src="assets/early_detection_curve.png" alt="early detection f1 and auc curves">
+  </section>
+
+  <section>
+    <h2>flagged coordination clusters</h2>
+    <p style="color:var(--text-dim); font-size:0.92rem;">
+      output of the burst detector on the same run — groups of accounts that never directly
+      follow each other, but pile onto the same handful of targets inside an implausibly
+      tight window.
+    </p>
+    <table id="cluster-table">
+      <thead><tr><th>cluster size</th><th>median inter-arrival</th><th>coordination score</th><th>events</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>example account scores</h2>
+    <table id="score-table">
+      <thead><tr><th>account</th><th>bot probability</th><th>risk</th><th>actual label</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>about the numbers on this page</h2>
+    <p>
+      twibot-20 and twibot-22 (the standard benchmarks for this task) both require emailing
+      the dataset authors and waiting for manual approval, which hasn't come through yet.
+      everything above was measured on a synthetic temporal graph generator built for this
+      project instead — organic accounts follow a circadian-modulated poisson process,
+      injected bot clusters activate in synchronized bursts and go dormant between
+      reactivations, and individual account features are drawn from <em>overlapping</em>
+      distributions between bots and humans on purpose, so the static baseline can't just
+      solve this from profile stats. code for both the generator and a drop-in twibot-format
+      loader are in the repo. full writeup and source:
+      <a href="https://github.com/aadihuria/tgn-bot-detection">github.com/aadihuria/tgn-bot-detection</a>.
+    </p>
+  </section>
+
+  <footer>
+    built by aadi huria · <a href="https://github.com/aadihuria/tgn-bot-detection">source</a>
+  </footer>
+</div>
+
+<script>
+async function load() {
+  const res = await fetch('data/demo.json');
+  const data = await res.json();
+  const s = data.summary;
+
+  const stats = [
+    [s.n_nodes.toLocaleString(), 'accounts in benchmark'],
+    [s.n_edges.toLocaleString(), 'temporal edges'],
+    [s.tgn_test.auc.toFixed(3), 'tgn roc-auc (full stream)'],
+    [s.baseline_test.auc.toFixed(3), 'static baseline roc-auc'],
+    [(s.burst_detector.recall * 100).toFixed(0) + '%', 'coordinated clusters caught'],
+    [s.burst_detector.false_positive_flagged_clusters + ' / ' + s.burst_detector.n_flagged_clusters, 'false positive clusters'],
+  ];
+
+  const grid = document.getElementById('stat-grid');
+  grid.innerHTML = '';
+  for (const [num, label] of stats) {
+    const div = document.createElement('div');
+    div.className = 'stat';
+    div.innerHTML = `<div class="num">${num}</div><div class="label">${label}</div>`;
+    grid.appendChild(div);
+  }
+
+  const clusterBody = document.querySelector('#cluster-table tbody');
+  for (const c of data.flagged_clusters) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${c.cluster_size}</td><td>${c.median_inter_arrival_sec.toFixed(0)}s</td>
+                     <td>${c.coordination_score.toFixed(2)}</td><td>${c.n_events}</td>`;
+    clusterBody.appendChild(tr);
+  }
+
+  const scoreBody = document.querySelector('#score-table tbody');
+  for (const acc of data.example_scores) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${acc.account_id}</td><td>${acc.bot_probability.toFixed(3)}</td>
+                     <td class="risk-${acc.risk_level}">${acc.risk_level}</td><td>${acc.actual_label}</td>`;
+    scoreBody.appendChild(tr);
+  }
+}
+load().catch(e => {
+  document.getElementById('stat-grid').innerHTML = 'could not load results data: ' + e;
+});
+</script>
+</body>
+</html>
