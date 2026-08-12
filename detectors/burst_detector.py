@@ -27,9 +27,13 @@ from scipy.stats import entropy
 
 class BurstCoordinationDetector:
     def __init__(self, window_hours: float = 4.0, median_inter_arrival_threshold_sec: float = 2500.0,
-                 min_cluster_size: int = 8, min_shared_events: int = 2):
+                 min_cluster_size: int = 8, min_shared_events: int = 2, min_events: int = 10):
         self.window_sec = window_hours * 3600
         self.min_cluster_size = min_cluster_size
+        # need enough events to get a meaningful median/kl estimate at all --
+        # tunable because the live api deals with much smaller subgraphs
+        # than the benchmark run does
+        self.min_events = min_events
         # two accounts landing on the same target once, within a few hours,
         # happens by pure chance all the time in a population this size --
         # only draw a co-follow edge once a pair has done it
@@ -113,7 +117,7 @@ class BurstCoordinationDetector:
             all_times = []
             for node in component:
                 all_times.extend(node_times.get(node, []))
-            if len(all_times) < 10:
+            if len(all_times) < self.min_events:
                 continue
 
             all_times = sorted(all_times)
