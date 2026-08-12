@@ -113,55 +113,33 @@ class SyntheticTemporalGraph:
         return edges
 
     def _node_features(self, is_bot: np.ndarray) -> torch.Tensor:
+        # the whole premise of this project is that sophisticated bots pass
+        # per-account checks, so these distributions are drawn the SAME way
+        # for bots and humans -- any individual account looks plausible.
+        # only two features get a small nudge (account age, default profile
+        # image), because even careful bot operators tend to spin accounts
+        # up recently and are slightly lazier about profile photos. that's
+        # weak-but-real signal, not a giveaway on its own -- the baseline
+        # model should NOT be able to solve this from features alone.
         n = len(is_bot)
         rng = self.rng
 
-        followers = np.where(
-            is_bot,
-            rng.lognormal(mean=2.5, sigma=1.0, size=n),
-            rng.lognormal(mean=4.5, sigma=1.8, size=n),
-        )
-        following = np.where(
-            is_bot,
-            rng.lognormal(mean=4.0, sigma=0.7, size=n),
-            rng.lognormal(mean=3.5, sigma=1.3, size=n),
-        )
-        tweets = np.where(
-            is_bot,
-            rng.lognormal(mean=3.0, sigma=1.2, size=n),
-            rng.lognormal(mean=5.0, sigma=1.5, size=n),
-        )
-        listed = np.where(
-            is_bot,
-            rng.lognormal(mean=0.3, sigma=0.8, size=n),
-            rng.lognormal(mean=1.2, sigma=1.4, size=n),
-        )
-        verified = np.where(
-            is_bot, rng.random(n) < 0.002, rng.random(n) < 0.03
-        ).astype(float)
+        followers = rng.lognormal(mean=3.8, sigma=1.6, size=n)
+        following = rng.lognormal(mean=3.7, sigma=1.1, size=n)
+        tweets = rng.lognormal(mean=4.3, sigma=1.6, size=n)
+        listed = rng.lognormal(mean=0.9, sigma=1.3, size=n)
+        verified = (rng.random(n) < 0.02).astype(float)
         account_age_days = np.where(
             is_bot,
-            rng.uniform(5, 250, size=n),
+            rng.uniform(30, 3200, size=n),
             rng.uniform(60, 4000, size=n),
         )
-        has_description = np.where(
-            is_bot, rng.random(n) < 0.55, rng.random(n) < 0.9
-        ).astype(float)
-        has_url = np.where(
-            is_bot, rng.random(n) < 0.15, rng.random(n) < 0.35
-        ).astype(float)
-        name_len = np.where(
-            is_bot,
-            rng.integers(4, 16, size=n).astype(float),
-            rng.integers(3, 22, size=n).astype(float),
-        )
-        username_len = np.where(
-            is_bot,
-            rng.integers(8, 15, size=n).astype(float),
-            rng.integers(4, 15, size=n).astype(float),
-        )
+        has_description = (rng.random(n) < 0.85).astype(float)
+        has_url = (rng.random(n) < 0.3).astype(float)
+        name_len = rng.integers(3, 22, size=n).astype(float)
+        username_len = rng.integers(4, 15, size=n).astype(float)
         default_profile_image = np.where(
-            is_bot, rng.random(n) < 0.25, rng.random(n) < 0.02
+            is_bot, rng.random(n) < 0.06, rng.random(n) < 0.02
         ).astype(float)
 
         def log1p_safe(x):
