@@ -13,11 +13,12 @@ labels. This is the main way TGN training code differs from a normal GNN
 training loop.
 """
 
+import numpy as np
 import torch
 import torch.nn as nn
 from torch_geometric.nn import TGNMemory, TransformerConv
 from torch_geometric.nn.models.tgn import IdentityMessage, LastAggregator, LastNeighborLoader
-from sklearn.metrics import f1_score, roc_auc_score
+from sklearn.metrics import f1_score, roc_auc_score, precision_recall_curve
 
 
 class TGNBotDetector(nn.Module):
@@ -58,8 +59,21 @@ class TGNBotDetector(nn.Module):
         return self.classifier(z_with_burst)
 
 
+def best_f1_threshold(labels, probs) -> float:
+    """picks the decision threshold that maximizes f1 on the given labels/probs"""
+    if len(set(labels)) < 2:
+        return 0.5
+    precision, recall, thresholds = precision_recall_curve(labels, probs)
+    f1s = 2 * precision * recall / (precision + recall + 1e-12)
+    if len(thresholds) == 0:
+        return 0.5
+    best_idx = np.argmax(f1s[:-1]) if len(f1s) > len(thresholds) else np.argmax(f1s)
+    return float(thresholds[best_idx])
+
+
 def _run_chronological_pass(model, neighbor_loader, temporal_data, burst_feats,
-                             edge_slice, device, batch_size, mask_attr, optimizer=None, criterion=None):
+                             edge_slice, device, batch_size, mask_attr, optimizer=None, criterion=None,
+                             threshold=0.5):
     """
     walks one slice of the edge stream in order, updating memory after every
     batch. if optimizer is given, does a training step on any labeled nodes
@@ -106,7 +120,7 @@ def _run_chronological_pass(model, neighbor_loader, temporal_data, burst_feats,
                 out = model(n_id, edge_index, msg_all[e_id] if e_id.numel() > 0 else msg_all[:0],
                             temporal_data.x, burst_feats)
                 probs = torch.softmax(out[labeled], dim=1)[:, 1]
-                preds = out[labeled].argmax(dim=1)
+                preds = (probs >= threshold).long()
                 labels = temporal_data.y[n_id][labeled]
                 all_probs.extend(probs.cpu().tolist())
                 all_preds.extend(preds.cpu().tolist())
@@ -176,17 +190,24 @@ def train_tgn(temporal_data, burst_feats, train_mask, val_mask, epochs: int = 8,
         history.append({"epoch": epoch, "loss": avg_loss, "val_f1": val_f1, "val_auc": val_auc})
         print(f"epoch {epoch:2d} | loss {avg_loss:.4f} | val f1 {val_f1:.4f} | val auc {val_auc:.4f}")
 
-    return model, neighbor_loader, history
+    # best_f1_threshold() is available above but not used here -- with a
+    # ~100-node val split the pr-curve threshold pick was unstable (kept
+    # landing near 0 or 1 depending on the run). sticking with 0.5 and
+    # reporting auc as the headline metric instead, see README
+    threshold = 0.5
+
+    return model, neighbor_loader, history, threshold
 
 
 def evaluate_tgn_on_slice(model, neighbor_loader, temporal_data, burst_feats,
-                           edge_slice, device, mask_attr="test_mask", batch_size: int = 200):
+                           edge_slice, device, mask_attr="test_mask", batch_size: int = 200,
+                           threshold: float = 0.5):
     model.eval()
     model.memory.reset_state()
     neighbor_loader.reset_state()
     preds, probs, labels = _run_chronological_pass(
         model, neighbor_loader, temporal_data, burst_feats,
-        edge_slice, device, batch_size, mask_attr,
+        edge_slice, device, batch_size, mask_attr, threshold=threshold,
     )
     if not labels:
         return {"f1": 0.0, "auc": 0.5, "n": 0}

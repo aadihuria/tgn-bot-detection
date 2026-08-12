@@ -19,16 +19,16 @@ from models.graphsage_baseline import GraphSAGEBot
 from models.tgn_bot_detector import evaluate_tgn_on_slice
 
 
-def _static_eval_at_cutoff(x, src, dst, y, mask, cutoff, model_ctor_kwargs, trained_state):
+def _static_eval_at_cutoff(x, src, dst, y, mask, cutoff, model_ctor_kwargs, trained_state, threshold):
     edge_index = torch.stack([src[:cutoff], dst[:cutoff]], dim=0)
     model = GraphSAGEBot(**model_ctor_kwargs)
     model.load_state_dict(trained_state)
     model.eval()
     with torch.no_grad():
         out = model(x, edge_index)
-        pred = out[mask].argmax(dim=1).cpu()
-        true = y[mask].cpu()
         probs = torch.softmax(out[mask], dim=1)[:, 1].cpu()
+        pred = (probs >= threshold).long()
+        true = y[mask].cpu()
     f1 = f1_score(true, pred, average="macro")
     auc = roc_auc_score(true, probs) if len(set(true.tolist())) > 1 else 0.5
     return f1, auc
@@ -36,13 +36,15 @@ def _static_eval_at_cutoff(x, src, dst, y, mask, cutoff, model_ctor_kwargs, trai
 
 def run_early_detection_eval(baseline_model, tgn_model, tgn_neighbor_loader,
                               temporal_data, burst_feats, x, src, dst, y, eval_mask,
-                              device, n_checkpoints: int = 6, out_dir: str = "results"):
+                              device, n_checkpoints: int = 6, out_dir: str = "results",
+                              tgn_threshold: float = 0.5):
     n_edges = src.shape[0]
     checkpoints = np.linspace(1.0 / n_checkpoints, 1.0, n_checkpoints)
     temporal_data.eval_mask_early = eval_mask
 
     baseline_kwargs = {"in_channels": x.shape[1]}
     baseline_state = baseline_model.state_dict()
+    baseline_threshold = getattr(baseline_model, "decision_threshold", 0.5)
 
     results = {"checkpoints": [], "tgn_f1": [], "tgn_auc": [], "static_f1": [], "static_auc": []}
 
@@ -50,12 +52,12 @@ def run_early_detection_eval(baseline_model, tgn_model, tgn_neighbor_loader,
         cutoff = max(int(frac * n_edges), 2)
 
         static_f1, static_auc = _static_eval_at_cutoff(
-            x, src, dst, y, eval_mask, cutoff, baseline_kwargs, baseline_state
+            x, src, dst, y, eval_mask, cutoff, baseline_kwargs, baseline_state, baseline_threshold
         )
 
         tgn_metrics = evaluate_tgn_on_slice(
             tgn_model, tgn_neighbor_loader, temporal_data, burst_feats,
-            slice(0, cutoff), device, mask_attr="eval_mask_early",
+            slice(0, cutoff), device, mask_attr="eval_mask_early", threshold=tgn_threshold,
         )
 
         results["checkpoints"].append(float(frac))

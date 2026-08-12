@@ -7,11 +7,12 @@ tgn_bot_detector.py can't clear this bar, the temporal signal isn't earning
 its complexity.
 """
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.nn import SAGEConv
-from sklearn.metrics import f1_score, roc_auc_score
+from sklearn.metrics import f1_score, roc_auc_score, precision_recall_curve
 
 
 class GraphSAGEBot(nn.Module):
@@ -27,6 +28,9 @@ class GraphSAGEBot(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
         self.classifier = nn.Linear(hidden // 2, out_channels)
+        # picked once after training by best_threshold(), used at eval time
+        # instead of the naive argmax -- see note in train_baseline
+        self.decision_threshold = 0.5
 
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
         x = F.relu(self.bn1(self.conv1(x, edge_index)))
@@ -35,6 +39,17 @@ class GraphSAGEBot(nn.Module):
         x = self.dropout(x)
         x = F.relu(self.bn3(self.conv3(x, edge_index)))
         return self.classifier(x)
+
+
+def best_threshold(labels, probs) -> float:
+    if len(set(labels)) < 2:
+        return 0.5
+    precision, recall, thresholds = precision_recall_curve(labels, probs)
+    f1s = 2 * precision * recall / (precision + recall + 1e-12)
+    if len(thresholds) == 0:
+        return 0.5
+    idx = np.argmax(f1s[:-1]) if len(f1s) > len(thresholds) else np.argmax(f1s)
+    return float(thresholds[idx])
 
 
 def train_baseline(x, edge_index, y, train_mask, val_mask, epochs: int = 100, lr: float = 1e-3):
@@ -84,17 +99,27 @@ def train_baseline(x, edge_index, y, train_mask, val_mask, epochs: int = 100, lr
 
     if best_state is not None:
         model.load_state_dict(best_state)
+
+    # tried tuning this threshold on val via best_threshold() above, but the
+    # val split here is only ~100 nodes with ~9% bots -- way too small for a
+    # pr-curve threshold pick to generalize, it was overfitting to noise.
+    # sticking with a plain 0.5 cutoff and leaning on auc as the headline
+    # number instead (see README for why)
+    model.decision_threshold = 0.5
+
     return model, history
 
 
-def evaluate(model, x, edge_index, y, mask):
+def evaluate(model, x, edge_index, y, mask, threshold: float = None):
     device = next(model.parameters()).device
+    if threshold is None:
+        threshold = getattr(model, "decision_threshold", 0.5)
     model.eval()
     with torch.no_grad():
         out = model(x.to(device), edge_index.to(device))
-        pred = out[mask].argmax(dim=1).cpu()
-        true = y[mask].cpu()
         probs = torch.softmax(out[mask], dim=1)[:, 1].cpu()
+        pred = (probs >= threshold).long()
+        true = y[mask].cpu()
 
     f1 = f1_score(true, pred, average="macro")
     auc = roc_auc_score(true, probs) if len(set(true.tolist())) > 1 else 0.5
