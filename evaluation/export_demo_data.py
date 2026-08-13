@@ -50,16 +50,38 @@ def main():
     cofollow_graph = detector.build_cofollow_graph(src.numpy(), dst.numpy(), t.numpy())
     flagged_clusters = detector.detect_coordinated_clusters(cofollow_graph, src.numpy(), t.numpy())
 
+    # picking the first N here isn't representative -- test set order happens
+    # to start with a long run of low-risk humans, so the demo page would
+    # show 12 humans and never once show what a flagged bot looks like.
+    # pull a real spread instead: highest-scoring true bots, lowest-scoring
+    # true humans, and a few from the middle. still 100% real model output,
+    # just picked so the page actually shows both sides of the problem.
+    scored = sorted(
+        [(p, l, i) for i, (p, l) in enumerate(zip(probs, labels))],
+        key=lambda row: row[0],
+    )
+    bots = [row for row in scored if row[1] == 1]
+    humans = [row for row in scored if row[1] == 0]
+
+    picked = []
+    picked += bots[-4:]                                   # most confidently flagged bots
+    picked += humans[:4]                                  # most confidently clean humans
+    mid = scored[len(scored) // 2 - 2: len(scored) // 2 + 2]
+    picked += mid                                          # borderline cases either way
+    seen_idx = set()
     example_scores = []
-    for i in range(min(12, len(probs))):
-        p = probs[i]
+    for p, l, i in picked:
+        if i in seen_idx:
+            continue
+        seen_idx.add(i)
         risk = "high" if p > 0.6 else "medium" if p > 0.3 else "low"
         example_scores.append({
             "account_id": f"acct_{i:04d}",
             "bot_probability": round(float(p), 3),
-            "actual_label": "bot" if labels[i] == 1 else "human",
+            "actual_label": "bot" if l == 1 else "human",
             "risk_level": risk,
         })
+    example_scores.sort(key=lambda r: r["bot_probability"], reverse=True)
 
     demo_clusters = []
     for c in flagged_clusters[:8]:
