@@ -107,11 +107,15 @@
     <div class="badge">synthetic benchmark — see note below</div>
     <h1>temporal graph network for coordinated inauthentic behavior detection</h1>
     <p class="lede">
-      most bot detectors look at one account at a time and ask "does this look like a bot."
-      sophisticated bot networks are built to pass that test. what they can't hide is
-      <em>when</em> a cluster of accounts moves together — this project scores accounts with a
-      temporal graph network that has memory of connection history, and separately flags
-      clusters of accounts whose timing is statistically impossible to be organic.
+      most bot detectors look at one account at a time and ask "does this look fake" — follower
+      count, account age, profile photo. bot operators know exactly what those checks look for,
+      so a well-made bot clears every one of them on its own.
+      what's hard to fake is a <em>group</em> of accounts acting together, over and over. one
+      cluster of "strangers" all following the same target within the same few hours could be
+      coincidence — the same cluster doing it again the next week, and the week after, isn't.
+      that repeated, synchronized behavior is what this project catches: one model that scores
+      accounts by their pattern of activity over time instead of a frozen snapshot, and a second,
+      separate tool that flags whole clusters whose timing is too tight to be organic.
     </p>
   </header>
 
@@ -154,15 +158,17 @@
   <section>
     <h2>about the numbers on this page</h2>
     <p>
-      twibot-20 and twibot-22 (the standard benchmarks for this task) both require emailing
-      the dataset authors and waiting for manual approval, which hasn't come through yet.
-      everything above was measured on a synthetic temporal graph generator built for this
-      project instead — organic accounts follow a circadian-modulated poisson process,
-      injected bot clusters activate in synchronized bursts and go dormant between
-      reactivations, and individual account features are drawn from <em>overlapping</em>
-      distributions between bots and humans on purpose, so the static baseline can't just
-      solve this from profile stats. code for both the generator and a drop-in twibot-format
-      loader are in the repo. full writeup and source:
+      the two standard real-world datasets for this task (twibot-20 and twibot-22) both require
+      emailing the dataset authors and waiting for manual approval, which hasn't come through
+      yet. so everything above was measured on a synthetic dataset built for this project instead
+      — a generator that creates realistic organic accounts (people connecting gradually, more
+      active in the evening than at 4am) alongside bot clusters that activate in synchronized
+      bursts and go dormant in between. bot accounts are deliberately given the same kind of
+      profile stats as real ones, on purpose — the point of this project is that per-account
+      checks shouldn't be enough to catch them, so the generator doesn't hand that signal to the
+      model for free. only the group timing gives them away. a loader for the real twibot file
+      format is already written and sitting in the repo, ready to swap in the moment access comes
+      through. full writeup and source:
       <a href="https://github.com/aadihuria/tgn-bot-detection">github.com/aadihuria/tgn-bot-detection</a>.
     </p>
   </section>
