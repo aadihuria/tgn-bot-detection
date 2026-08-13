@@ -134,6 +134,18 @@
     <img class="chart" src="assets/early_detection_curve.png" alt="early detection f1 and auc curves">
   </section>
 
+  <section id="mgtab-section" style="display:none;">
+    <h2>real-data check: static baseline on mgtab</h2>
+    <p style="color:var(--text-dim); font-size:0.92rem;">
+      the tgn above needs timestamps, which the synthetic benchmark has and real published
+      datasets mostly don't. <a href="https://github.com/GraphDetec/MGTAB">mgtab</a> is a real,
+      freely downloadable, expert-labeled twitter bot dataset with no timestamps — so it can't
+      test the tgn, but it can check that the static baseline model works on real accounts,
+      not just the synthetic generator.
+    </p>
+    <div id="mgtab-stat-grid" class="stat-grid"></div>
+  </section>
+
   <section>
     <h2>flagged coordination clusters</h2>
     <p style="color:var(--text-dim); font-size:0.92rem;">
@@ -192,6 +204,24 @@ async function load() {
     [(s.burst_detector.recall * 100).toFixed(0) + '%', 'coordinated clusters caught'],
     [s.burst_detector.false_positive_flagged_clusters + ' / ' + s.burst_detector.n_flagged_clusters, 'false positive clusters'],
   ];
+
+  if (data.mgtab) {
+    const m = data.mgtab;
+    document.getElementById('mgtab-section').style.display = '';
+    const mgrid = document.getElementById('mgtab-stat-grid');
+    const mstats = [
+      [m.n_nodes.toLocaleString(), 'real labeled accounts'],
+      [m.n_edges.toLocaleString(), 'real edges (7 relation types)'],
+      [m.test_f1.toFixed(3), 'test f1'],
+      [m.test_auc.toFixed(3), 'test roc-auc'],
+    ];
+    for (const [num, label] of mstats) {
+      const div = document.createElement('div');
+      div.className = 'stat';
+      div.innerHTML = `<div class="num">${num}</div><div class="label">${label}</div>`;
+      mgrid.appendChild(div);
+    }
+  }
 
   const grid = document.getElementById('stat-grid');
   grid.innerHTML = '';
