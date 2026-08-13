@@ -121,6 +121,12 @@
 
   <section>
     <h2>results, on the synthetic benchmark</h2>
+    <p style="color:var(--text-dim); font-size:0.92rem;">
+      "auc" below is a score from 0 to 1 for how well a model can tell bots and humans
+      apart — 0.5 is a coin flip, 1.0 is a perfect separation. it's the fairest number to
+      compare here since bots are a small slice of the accounts (imbalanced data makes
+      simpler stats like plain accuracy misleading).
+    </p>
     <div id="stat-grid" class="stat-grid"><span id="loading">loading results…</span></div>
   </section>
 
@@ -149,20 +155,37 @@
   <section>
     <h2>flagged coordination clusters</h2>
     <p style="color:var(--text-dim); font-size:0.92rem;">
-      output of the burst detector on the same run — groups of accounts that never directly
-      follow each other, but pile onto the same handful of targets inside an implausibly
-      tight window.
+      groups of accounts that never directly follow each other, but keep piling onto the
+      same handful of targets within a suspiciously tight window of time — the kind of
+      pattern that's very unlikely to happen if those accounts were run by separate people.
     </p>
     <table id="cluster-table">
-      <thead><tr><th>cluster size</th><th>median inter-arrival</th><th>coordination score</th><th>events</th></tr></thead>
+      <thead><tr>
+        <th>accounts in group</th>
+        <th>typical gap between actions</th>
+        <th>how unusual the timing is</th>
+        <th>actions seen</th>
+      </tr></thead>
       <tbody></tbody>
     </table>
+    <p style="color:var(--text-dim); font-size:0.8rem; margin-top:8px;">
+      "typical gap between actions" is the median time between one action in the group and
+      the next — a real crowd of strangers reacting to the same thing spreads out over
+      hours; a controlled group tends to act within minutes. "how unusual the timing is" is
+      a 0+ score comparing the group's actual timing pattern to what normal, spread-out
+      behavior looks like — higher means less likely to be a coincidence.
+    </p>
   </section>
 
   <section>
     <h2>example account scores</h2>
+    <p style="color:var(--text-dim); font-size:0.92rem;">
+      a mix of the model's most confident bot flags, most confident "this is a real
+      person" calls, and a few it was genuinely unsure about — with the true answer shown
+      alongside so you can see where it's right.
+    </p>
     <table id="score-table">
-      <thead><tr><th>account</th><th>bot probability</th><th>risk</th><th>actual label</th></tr></thead>
+      <thead><tr><th>account</th><th>bot likelihood</th><th>risk</th><th>actually was</th></tr></thead>
       <tbody></tbody>
     </table>
   </section>
