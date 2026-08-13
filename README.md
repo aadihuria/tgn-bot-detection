@@ -123,6 +123,33 @@ repeatedly, so there isn't much of a "wait longer to be more sure" curve to show
 itself a reasonably interesting result and is worth re-checking once this runs on TwiBot-22,
 where bot behavior is less scripted than a synthetic generator's.
 
+## real-data check: static baseline on mgtab
+
+the tgn and burst detector above are both trained and validated on the synthetic
+benchmark, because that's the only way to get a temporal edge stream right now — twibot
+access is still pending (see below). but the static baseline (`models/graphsage_baseline.py`)
+doesn't need timestamps, so it can be checked against a real, published dataset today:
+[mgtab](https://github.com/GraphDetec/MGTAB) (arxiv 2301.01123), 10,199 expert-labeled
+accounts, no request form, direct download.
+
+| | mgtab (real data) | synthetic benchmark |
+|---|---|---|
+| f1 | 0.851 | 0.488 |
+| auc | 0.945 | 0.597 |
+
+worth being clear about why these aren't comparable numbers, not "mgtab is easier." the
+synthetic generator deliberately draws bot and human account features from the *same*
+distributions, so the static baseline is only supposed to do a little better than random —
+the whole point of that benchmark is proving individual-account signal isn't enough. mgtab
+is real accounts with real, separable feature differences (788-dim, includes text-derived
+features), so a static gnn actually has something to work with there. this result says "the
+static-gnn code itself is correct and works on real labeled data" — it doesn't say anything
+about whether temporal modeling helps on mgtab, since mgtab has no edge timestamps to test
+that with.
+
+grab the dataset yourself from the mgtab repo above (six `.pt` files, unzip into
+`data/mgtab_raw/`) and run `python train_mgtab_baseline.py` to reproduce.
+
 ## repo layout
 
 ```
