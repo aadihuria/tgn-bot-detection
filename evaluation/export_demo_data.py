@@ -73,10 +73,16 @@ def main():
     with open("results/summary.json") as f:
         summary = json.load(f)
 
+    mgtab = None
+    if os.path.exists("results/mgtab_baseline.json"):
+        with open("results/mgtab_baseline.json") as f:
+            mgtab = json.load(f)
+
     bundle = {
         "summary": summary,
         "example_scores": example_scores,
         "flagged_clusters": demo_clusters,
+        "mgtab": mgtab,
     }
 
     os.makedirs("docs/data", exist_ok=True)
