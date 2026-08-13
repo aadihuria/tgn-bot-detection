@@ -95,14 +95,25 @@ burst coordination detector (separate path)
 
 | metric | graphsage (static) | tgn (temporal) |
 |---|---|---|
-| f1 (macro, full stream) | 0.488 | 0.521 |
-| roc-auc (full stream) | 0.597 | 0.959 |
+| f1 (macro, full stream) | 0.591 | 0.504 |
+| roc-auc (full stream) | 0.694 | 0.944 |
 
 auc is the metric to trust here over f1 — with bots at ~9% of labeled nodes, f1 at a fixed
 0.5 decision threshold is a noisy statistic regardless of how good the underlying ranking
-is. auc doesn't have that problem, and the gap there (0.60 static vs 0.96 temporal) is the
-actual story: a model that can't see event ordering barely beats random on this benchmark,
-one that can gets close to a clean separation.
+is. auc doesn't have that problem, and the gap there (0.69 static vs 0.94 temporal) is the
+actual story: a model that can't see event ordering does okay by leaning on account
+features and shared-target structure, one that can see ordering gets much closer to a
+clean separation.
+
+a note on how these numbers moved: an earlier version of this table had the static
+baseline at 0.60 auc, not 0.69, because of a real bug — accounts in this graph only ever
+appear as the *source* of an edge (they follow targets, targets never follow back), and
+the baseline's edge list was directed-only, so sageconv had zero incoming neighbor signal
+for every account, full stop. it was quietly acting like a feature-only classifier while
+labeled a graph model. fixed by mirroring the edges for the baseline specifically (see
+`symmetrize_edge_index` in `models/graphsage_baseline.py`) so accounts can actually hear
+from what they follow. the tgn was never affected — its neighbor loader already treats
+interactions as undirected internally. numbers above are post-fix.
 
 (the tgn test-set count in `results/summary.json` is larger than the raw node count because
 metrics are computed over every time a labeled node shows up in the chronological walk, not
@@ -111,17 +122,20 @@ deduplicated to one score per node — a account gets re-scored each time new ed
 **burst detector:** caught 18 of 25 injected bot clusters (72% recall) with 2 false
 positives out of 19 flagged clusters, using nothing but connection timing — no node
 features, no model weights, just the co-follow graph and a median inter-arrival threshold.
+unaffected by the bug above, this path never touched the baseline's edge list.
 
 **early detection**, checking the tgn against the same static baseline at increasing
 fractions of the observed edge stream:
 
 ![early detection curve](docs/assets/early_detection_curve.png)
 
-the tgn's auc is already at 0.96+ by the 17% checkpoint and stays roughly flat from there —
-on this benchmark, the coordinated bursts that give bot clusters away happen early and
-repeatedly, so there isn't much of a "wait longer to be more sure" curve to show. that's
-itself a reasonably interesting result and is worth re-checking once this runs on TwiBot-22,
-where bot behavior is less scripted than a synthetic generator's.
+the tgn's auc is already at 0.90+ by the 17% checkpoint and stays there — on this
+benchmark, the coordinated bursts that give bot clusters away happen early and
+repeatedly, so there isn't much of a "wait longer to be more sure" curve to show for it.
+the static baseline is noisier across checkpoints now that it's actually using graph
+structure (it briefly beats the tgn on f1 around the 33% mark), which is a more honest
+picture than a perfectly flat line was. worth re-checking both once this runs on
+TwiBot-22, where bot behavior is less scripted than a synthetic generator's.
 
 ## real-data check: static baseline on mgtab
 
