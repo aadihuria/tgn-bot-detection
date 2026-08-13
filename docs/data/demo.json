@@ -5,12 +5,12 @@
     "n_bots": 628,
     "n_bot_clusters": 25,
     "baseline_test": {
-      "f1": 0.4875964424731956,
-      "auc": 0.5969196732471068
+      "f1": 0.5910579850318338,
+      "auc": 0.6941736360984149
     },
     "tgn_test": {
-      "f1": 0.5207756543078913,
-      "auc": 0.9587111494222939,
+      "f1": 0.5037965269573683,
+      "auc": 0.9438644193723178,
       "n": 127687
     },
     "burst_detector": {
@@ -30,63 +30,81 @@
         1.0
       ],
       "tgn_f1": [
-        0.5366485815407819,
-        0.5306227077476261,
-        0.5320742659922115,
-        0.529371155974501,
-        0.5218514652445336,
-        0.5207756543078913
+        0.5014531351310206,
+        0.506385164960448,
+        0.5092255594926176,
+        0.5061863435515013,
+        0.5037896149371552,
+        0.5037965269573683
       ],
       "tgn_auc": [
-        0.964544945842756,
-        0.9553653328099889,
-        0.968157749401372,
-        0.9611838645053727,
-        0.9543172174385626,
-        0.9587111494222939
+        0.9050585875292658,
+        0.920149921086593,
+        0.94327333934969,
+        0.9404365691278143,
+        0.9374069475543693,
+        0.9438644193723178
       ],
       "static_f1": [
-        0.4875964424731956,
-        0.4875964424731956,
-        0.4875964424731956,
-        0.4875964424731956,
-        0.4875964424731956,
-        0.4875964424731956
+        0.5001196470474742,
+        0.6124033095118847,
+        0.5790738447045689,
+        0.563326665454325,
+        0.5778020246105352,
+        0.5910579850318338
       ],
       "static_auc": [
-        0.5969196732471068,
-        0.5969196732471068,
-        0.5969196732471068,
-        0.5969196732471068,
-        0.5969196732471068,
-        0.5969196732471068
+        0.7843163473694447,
+        0.79112369930954,
+        0.6591826315277644,
+        0.6462608188271906,
+        0.6745356413498006,
+        0.6941736360984149
       ]
     }
   },
   "example_scores": [
     {
-      "account_id": "acct_79250",
-      "bot_probability": 0.938,
+      "account_id": "acct_72164",
+      "bot_probability": 0.932,
       "actual_label": "bot",
       "risk_level": "high"
     },
     {
-      "account_id": "acct_45146",
-      "bot_probability": 0.936,
+      "account_id": "acct_52491",
+      "bot_probability": 0.93,
       "actual_label": "bot",
       "risk_level": "high"
     },
     {
-      "account_id": "acct_45762",
-      "bot_probability": 0.936,
+      "account_id": "acct_3628",
+      "bot_probability": 0.93,
       "actual_label": "bot",
       "risk_level": "high"
     },
     {
-      "account_id": "acct_45971",
-      "bot_probability": 0.936,
+      "account_id": "acct_38598",
+      "bot_probability": 0.922,
       "actual_label": "bot",
       "risk_level": "high"
+    },
+    {
+      "account_id": "acct_80441",
+      "bot_probability": 0.0,
+      "actual_label": "human",
+      "risk_level": "low"
+    },
+    {
+      "account_id": "acct_57458",
+      "bot_probability": 0.0,
+      "actual_label": "human",
+      "risk_level": "low"
+    },
+    {
+      "account_id": "acct_103052",
+      "bot_probability": 0.0,
+      "actual_label": "human",
+      "risk_level": "low"
     },
     {
       "account_id": "acct_103462",
@@ -95,43 +113,25 @@
       "risk_level": "low"
     },
     {
-      "account_id": "acct_102219",
+      "account_id": "acct_85446",
       "bot_probability": 0.0,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
-      "account_id": "acct_126279",
+      "account_id": "acct_92996",
       "bot_probability": 0.0,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
-      "account_id": "acct_124235",
+      "account_id": "acct_95755",
       "bot_probability": 0.0,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
-      "account_id": "acct_43453",
-      "bot_probability": 0.0,
-      "actual_label": "human",
-      "risk_level": "low"
-    },
-    {
-      "account_id": "acct_25224",
-      "bot_probability": 0.0,
-      "actual_label": "human",
-      "risk_level": "low"
-    },
-    {
-      "account_id": "acct_25449",
-      "bot_probability": 0.0,
-      "actual_label": "human",
-      "risk_level": "low"
-    },
-    {
-      "account_id": "acct_25674",
+      "account_id": "acct_96156",
       "bot_probability": 0.0,
       "actual_label": "human",
       "risk_level": "low"
@@ -141,49 +141,49 @@
     {
       "cluster_size": 30,
       "median_inter_arrival_sec": 328.75,
-      "coordination_score": 0.726,
+      "coordination_score": 0.776,
       "n_events": 98
     },
     {
       "cluster_size": 33,
       "median_inter_arrival_sec": 332.88,
-      "coordination_score": 0.687,
+      "coordination_score": 0.714,
       "n_events": 143
     },
     {
       "cluster_size": 32,
       "median_inter_arrival_sec": 362.5,
-      "coordination_score": 0.564,
+      "coordination_score": 0.628,
       "n_events": 88
     },
     {
       "cluster_size": 239,
       "median_inter_arrival_sec": 382.5,
-      "coordination_score": 2.222,
+      "coordination_score": 2.076,
       "n_events": 8530
     },
     {
       "cluster_size": 29,
       "median_inter_arrival_sec": 386.0,
-      "coordination_score": 1.312,
+      "coordination_score": 1.038,
       "n_events": 78
     },
     {
       "cluster_size": 30,
       "median_inter_arrival_sec": 387.25,
-      "coordination_score": 0.684,
+      "coordination_score": 0.878,
       "n_events": 101
     },
     {
       "cluster_size": 31,
       "median_inter_arrival_sec": 407.75,
-      "coordination_score": 7.304,
+      "coordination_score": 0.605,
       "n_events": 131
     },
     {
       "cluster_size": 26,
       "median_inter_arrival_sec": 417.0,
-      "coordination_score": 0.838,
+      "coordination_score": 0.96,
       "n_events": 68
     }
   ],
