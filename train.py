@@ -14,7 +14,7 @@ from torch_geometric.data import TemporalData
 
 from data.synthetic_generator import SyntheticTemporalGraph, SyntheticGraphConfig, make_splits
 from data.pipeline import compute_burst_features
-from models.graphsage_baseline import train_baseline, evaluate as evaluate_baseline
+from models.graphsage_baseline import train_baseline, evaluate as evaluate_baseline, symmetrize_edge_index
 from models.tgn_bot_detector import train_tgn, evaluate_tgn_on_slice
 from detectors.burst_detector import BurstCoordinationDetector
 from evaluation.early_detection import run_early_detection_eval, plot_early_detection_curve
@@ -44,7 +44,7 @@ def main():
     train_mask, val_mask, test_mask = make_splits(graph["classifiable_mask"], graph["y"])
 
     print("\n=== training graphsage baseline (static snapshot) ===")
-    edge_index = torch.stack([src, dst], dim=0)
+    edge_index = symmetrize_edge_index(src, dst)
     t0 = time.time()
     baseline_model, baseline_history = train_baseline(x, edge_index, y, train_mask, val_mask, epochs=80)
     print(f"baseline trained in {time.time() - t0:.2f}s")

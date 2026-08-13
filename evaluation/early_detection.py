@@ -15,12 +15,14 @@ import numpy as np
 import torch
 from sklearn.metrics import f1_score, roc_auc_score
 
-from models.graphsage_baseline import GraphSAGEBot
+from models.graphsage_baseline import GraphSAGEBot, symmetrize_edge_index
 from models.tgn_bot_detector import evaluate_tgn_on_slice
 
 
 def _static_eval_at_cutoff(x, src, dst, y, mask, cutoff, model_ctor_kwargs, trained_state, threshold):
-    edge_index = torch.stack([src[:cutoff], dst[:cutoff]], dim=0)
+    # same mirroring the baseline was trained with -- without it accounts
+    # never receive a neighbor message and the cutoff stops mattering at all
+    edge_index = symmetrize_edge_index(src[:cutoff], dst[:cutoff])
     model = GraphSAGEBot(**model_ctor_kwargs)
     model.load_state_dict(trained_state)
     model.eval()
