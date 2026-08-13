@@ -15,6 +15,23 @@ from torch_geometric.nn import SAGEConv
 from sklearn.metrics import f1_score, roc_auc_score, precision_recall_curve
 
 
+def symmetrize_edge_index(src: torch.Tensor, dst: torch.Tensor) -> torch.Tensor:
+    """
+    accounts in this graph only ever appear as the SOURCE of an edge (they
+    follow targets, targets never follow back), so a plain directed
+    edge_index gives sageconv zero incoming messages for every account --
+    it was quietly degrading to an mlp on node features with no graph
+    signal at all. mirroring the edges so accounts can hear from whoever
+    they follow (and, transitively, from other accounts following the same
+    targets) is what actually makes this a graph baseline. tgn doesn't need
+    this fix -- its neighbor loader already treats interactions as
+    undirected on its own.
+    """
+    src_sym = torch.cat([src, dst])
+    dst_sym = torch.cat([dst, src])
+    return torch.stack([src_sym, dst_sym], dim=0)
+
+
 class GraphSAGEBot(nn.Module):
     def __init__(self, in_channels: int, hidden: int = 128, out_channels: int = 2, dropout: float = 0.3):
         super().__init__()
