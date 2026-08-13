@@ -2,30 +2,40 @@
 
 live demo: https://aadihuria.github.io/tgn-bot-detection/
 
-## the problem
+## the problem, explained without any of the jargon
 
-Meta reported removing 687 million fake accounts in a single quarter of 2025, and fake
-account prevalence has stayed roughly flat at 3-4% of monthly active users despite that —
-generative AI made it cheap to spin up accounts that pass individual review. Most detection
-systems still score one account at a time: profile photo, post frequency, follower ratio.
-A bot operator who knows what those checks look for can build an account that clears every
-one of them.
+Platforms try to catch fake accounts by looking at one account at a time and asking "does
+this look fake?" — follower count, account age, does it have a profile photo, how often it
+posts. The trouble is bot operators know exactly what those checks look for, so they build
+accounts that clear every single one. Looked at alone, a well-made bot looks like a normal
+person.
 
-What's harder to fake is the *shape* of a network's behavior over time. A real account
-accumulates connections gradually, through overlapping interests and organic interaction.
-A bot cluster gets deployed, and thirty accounts follow the same handful of targets inside
-a six-hour window, go quiet for two weeks, then reactivate together the moment something
-starts trending. No single account in that cluster looks suspicious. The synchronized
-timing across the group is the signal, and it's invisible to anything that evaluates
-accounts in isolation or looks at a single static snapshot of the graph.
+Here's the thing that's actually hard to fake: even when each individual account looks
+fine, a *group* of accounts working together can't hide how they behave as a group. A real
+person makes friends slowly, over weeks, through normal life. A bot farm gets switched on
+and thirty accounts all follow the same handful of targets within a few hours of each
+other, go quiet for two weeks, then all wake up together — and then do it again the next
+week, and the week after. One coincidence like that could happen to real strangers. The
+same group doing it over and over, in sync, across multiple separate bursts, is basically
+impossible to happen by accident. That's the signature a bot operator can't avoid leaving
+behind once they're running many accounts from one script — it's not really "created at
+the same time" that gives them away (real people cluster around big events too), it's
+"acted together, repeatedly, over time."
 
-This project builds two things that go after that timing signal directly:
+So the real question isn't "does this account look fake" — it's "does this account's
+behavior over time, and the behavior of the group around it, look like something scripted
+instead of something organic." Everything below is built around answering that instead of
+the profile-snapshot question.
 
-1. a **temporal graph network (TGN)** that scores individual accounts using a memory
-   vector updated as connection events arrive, so a node's representation depends on its
-   *history*, not just its current neighborhood
-2. a **burst coordination detector** that looks at clusters of accounts and flags groups
-   whose combined connection timing is statistically implausible for organic behavior
+Two separate tools go after that timing signal directly:
+
+1. a **temporal graph network (TGN)** — instead of judging an account from a frozen
+   snapshot, this gives every account a "memory" that updates every time something happens
+   to it, so it's scoring an account's *pattern of behavior over time*, not a fixed profile
+2. a **burst coordination detector** — doesn't look at individual accounts at all. it maps
+   out which accounts keep showing up together, doing the same thing, at the same time, and
+   flags any cluster whose timing is too tightly synchronized to be a coincidence of
+   separate real people
 
 ## about the data — read this before the results below
 
