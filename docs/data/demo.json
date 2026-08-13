@@ -66,73 +66,73 @@
   "example_scores": [
     {
       "account_id": "acct_0000",
-      "bot_probability": 0.002,
+      "bot_probability": 0.0,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0001",
-      "bot_probability": 0.014,
+      "bot_probability": 0.001,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0002",
-      "bot_probability": 0.21,
+      "bot_probability": 0.028,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0003",
-      "bot_probability": 0.004,
+      "bot_probability": 0.001,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0004",
-      "bot_probability": 0.012,
+      "bot_probability": 0.0,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0005",
-      "bot_probability": 0.019,
+      "bot_probability": 0.004,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0006",
-      "bot_probability": 0.043,
+      "bot_probability": 0.006,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0007",
-      "bot_probability": 0.024,
+      "bot_probability": 0.001,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0008",
-      "bot_probability": 0.036,
+      "bot_probability": 0.005,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0009",
-      "bot_probability": 0.023,
+      "bot_probability": 0.004,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0010",
-      "bot_probability": 0.007,
+      "bot_probability": 0.0,
       "actual_label": "human",
       "risk_level": "low"
     },
     {
       "account_id": "acct_0011",
-      "bot_probability": 0.003,
+      "bot_probability": 0.0,
       "actual_label": "human",
       "risk_level": "low"
     }
@@ -141,50 +141,58 @@
     {
       "cluster_size": 30,
       "median_inter_arrival_sec": 328.75,
-      "coordination_score": 0.88,
+      "coordination_score": 0.909,
       "n_events": 98
     },
     {
       "cluster_size": 33,
       "median_inter_arrival_sec": 332.88,
-      "coordination_score": 0.704,
+      "coordination_score": 0.747,
       "n_events": 143
     },
     {
       "cluster_size": 32,
       "median_inter_arrival_sec": 362.5,
-      "coordination_score": 0.694,
+      "coordination_score": 0.935,
       "n_events": 88
     },
     {
       "cluster_size": 239,
       "median_inter_arrival_sec": 382.5,
-      "coordination_score": 2.129,
+      "coordination_score": 1.696,
       "n_events": 8530
     },
     {
       "cluster_size": 29,
       "median_inter_arrival_sec": 386.0,
-      "coordination_score": 1.156,
+      "coordination_score": 1.451,
       "n_events": 78
     },
     {
       "cluster_size": 30,
       "median_inter_arrival_sec": 387.25,
-      "coordination_score": 0.947,
+      "coordination_score": 0.915,
       "n_events": 101
     },
     {
       "cluster_size": 31,
       "median_inter_arrival_sec": 407.75,
-      "coordination_score": 0.873,
+      "coordination_score": 6.074,
       "n_events": 131
     },
     {
       "cluster_size": 26,
       "median_inter_arrival_sec": 417.0,
-      "coordination_score": 0.722,
+      "coordination_score": 1.034,
       "n_events": 68
     }
-  ]
+  ],
+  "mgtab": {
+    "n_nodes": 10199,
+    "n_edges": 1700108,
+    "n_bots": 2748,
+    "bot_ratio": 0.2694381773471832,
+    "test_f1": 0.8505666291051577,
+    "test_auc": 0.9449633990916311
+  }
 }
